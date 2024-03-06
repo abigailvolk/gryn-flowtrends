@@ -702,17 +702,17 @@ to 1 and 12 respectively if you want the calendar year summaries
 through June, and so on.
 
 ```{r Gage, echo=FALSE, warning=FALSE}
-startDate <- SpecificGageInfo$StartDate
-endDate <- SpecificGageInfo$EndDate
-siteID <- SpecificGageInfo$GageID
-siteName <- SpecificGageInfo$SiteName
+startDate <- specific_gage$StartDate
+endDate <- specific_gage$EndDate
+siteID <- specific_gage$GageID
+siteName <- specific_gage$SiteName
 
 Daily <- readNWISDaily(siteID,
                        "00060",
                        startDate, 
                        endDate) |>
   dplyr::filter(grepl('A', Qualifier)) |>
-  dplyr::mutate(cfs == Q*35.314666212661)
+  dplyr::mutate(cfs = Q*35.314666212661)
 
 INFO <- readNWISInfo(siteID,
                      "00060", 
@@ -1470,7 +1470,7 @@ knitr::purl(rmd_file)
 ```
 
 ---
-title: "`r SpecificGageInfo$siteName`"
+title: "`r specific_gage$siteName`"
 subtitle: "Longterm Flow Analysis, updated 2023-08-22"
 author: "Abby Volk, Ally Mars, Andy Ray, Jana Cram, Ben LaFrance"
 date: "`r Sys.Date()`"
