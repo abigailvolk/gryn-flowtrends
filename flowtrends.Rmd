@@ -1328,18 +1328,94 @@ senth <- function(x, y, conf = 95, site, Xlab = NULL, Ylab = NULL, legend_loc = 
 ```
 
 ```{r PeakFlow, echo=FALSE, message=FALSE, warning=FALSE}
-wtr_yr <- function(dates, start_month=10) {
-  dates.posix = as.POSIXlt(dates)
-  offset = ifelse(dates.posix$mon >= start_month - 1, 1, 0)
-  adj.year = dates.posix$year + 1900 + offset
-  adj.year
+getpeakflow_days_season <- function(Daily){
+  peak <- Daily %>% 
+  mutate(wateryear_day = 
+           if_else(Day >= 275, Day - 274, Day + 92)) %>%
+  group_by(waterYear) %>% 
+  mutate(frequency = n()) %>% 
+  filter(frequency > 250) %>% 
+  ungroup() %>% 
+  select(Day, Year, waterYear, cfs, wateryear_day, Date) %>% 
+  mutate(month = (as.numeric(format(Date, "%m")))) %>% 
+  mutate(season = 
+           if_else(month >= 7 & month <= 9, "Monsoon", "Other")) %>% 
+  group_by(season, waterYear) %>% 
+  mutate(max_cfs = max(cfs)) %>% 
+  filter(cfs == max_cfs)
+  
+  peak$month <-  month.name[peak$month] %>% 
+    factor(levels=paste(month.name))
+  return(peak)
 }
-peakFlow <- readNWISpeak(siteID, startDate=startDate, endDate=endDate)
-peakFlow <- peakFlow %>% drop_na(peak_dt)
-peakFlow$Day <- as.numeric(format(peakFlow$peak_dt, "%j"))
-peakFlow$WaterYear <- wtr_yr(peakFlow$peak_dt)
-peakFlow$Year <- as.numeric(format(peakFlow$peak_dt, "%Y"))
-theil_sen <- senth(peakFlow$Year, peakFlow$Day, site = site, Xlab = "Year", Ylab = "Days Since January 1st", legend_loc = "topright")
+
+getpeakflow_days <- function(Daily){
+  Daily %>% 
+  mutate(wateryear_day = 
+           if_else(Day >= 275, Day - 274, Day + 92)) %>%
+  group_by(waterYear) %>% 
+  mutate(frequency = n()) %>% 
+  filter(frequency > 250) %>% 
+  ungroup() %>% 
+  select(Day, Year, waterYear, cfs, wateryear_day, Date) %>% 
+  group_by(waterYear) %>% 
+  mutate(max_day = max(cfs)) %>% 
+  filter(cfs == max_day)
+}
+
+sen <- function(..., weights = NULL) {
+  mblm::mblm(repeated = F, ...)
+}
+
+peakflow <- getpeakflow_days(Daily)
+peakflow_season <- getpeakflow_days_season(Daily)
+
+theil_sen <- invisible(senth(peakflow$waterYear, peakflow$wateryear_day, 
+                   site = site, 
+                   Xlab = "Water Year", 
+                   Ylab = "Days Since October 1st", 
+                   legend_loc = "topright"))
+
+peakflow %>% 
+  ggplot(aes(x=waterYear, y=cfs)) + 
+  geom_smooth(method = sen, se = F, color = "green") +
+  labs(x="Water Year", y="Peak Flow Magnitude (cfs)") +
+  scale_color_manual(values = c("black", "orange")) +
+  geom_point() + 
+  theme_bw() +
+  theme(plot.title = element_text(hjust=0.5, face="bold"),
+        axis.text=element_text(size=12),
+        axis.title=element_text(size=14,face="bold"),
+        legend.title = element_text(size=14),
+        legend.text = element_text(size=10),
+        legend.title.align=0.5) 
+
+peakflow_season %>% 
+  ggplot(aes(x=waterYear, y=wateryear_day, color=season)) +
+  geom_point() +
+  geom_smooth(method = sen, se = F) +
+  scale_color_brewer(palette = "Paired") +
+  labs(x="Water Year", y="Days since October 1st") + 
+  theme_bw() +
+  theme(plot.title = element_text(hjust=0.5, face="bold"),
+        axis.text=element_text(size=12),
+        axis.title=element_text(size=14,face="bold"),
+        legend.title = element_text(size=14),
+        legend.text = element_text(size=10),
+        legend.title.align=0.5) 
+
+peakflow_season %>% 
+  ggplot(aes(x=waterYear, y=cfs, color=season)) + 
+  geom_smooth(method = sen, se = F) +
+  labs(x="Water Year", y="Peak Flow Magnitude (cfs)") +
+  scale_color_manual(values = c("black", "orange")) +
+  geom_point() + 
+  theme(plot.title = element_text(hjust=0.5, face="bold"),
+        axis.text=element_text(size=12),
+        axis.title=element_text(size=14,face="bold"),
+        legend.title = element_text(size=14),
+        legend.text = element_text(size=10),
+        legend.title.align=0.5) 
 ```
 
 ```{r Senth-Statistics, echo=FALSE}
