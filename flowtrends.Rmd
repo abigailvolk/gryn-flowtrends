@@ -750,38 +750,38 @@ The below hydrograph displays the current year vs. the mean, 25th, and
 75th percentiles from the entire record.
 
 ```{r Historical-Hydrograph, echo=FALSE, message=FALSE, warning=FALSE}
+current_yr <- format(Sys.Date(), "%Y")
+current_yr_daily <- Daily |>
+  dplyr::filter(Year >= current_yr) |>
+  dplyr::select(Day, cfs)
+
 cfs_historical <- Daily |> 
   dplyr::mutate(Year = trunc(DecYear)) |>
   dplyr::select(Day, cfs, Year) |>
   dplyr::arrange(Day) |>
   dplyr::group_by(Day) |>
-  dplyr::mutate()
+  dplyr::mutate(`25%` = stats::quantile(cfs, probs = 0.25),
+                `50%` = stats::quantile(cfs, probs = 0.5),
+                `75%` = stats::quantile(cfs, probs = 0.75),
+                Mean = mean(cfs) ) |>
+  dplyr::select(!Year & !cfs) |>
+  dplyr::distinct() |>
+  dplyr::left_join(current_yr_daily, by = 'Day')
 
-
-cfs_historical <- pivot_wider(cfs_historical, names_from = Day, values_from = cfs)
-quants <- c(0.25,0.50, 0.75)
-Percentiles <- apply(cfs_historical[2:dim(cfs_historical)[2]], 2, quantile, probs = quants, na.rm = TRUE)
-Mean <- apply(cfs_historical[2:dim(cfs_historical)[2]], 2, mean, na.rm = TRUE)
-historical_stats <- t(rbind(Percentiles, Mean))
-historical_stats <- as.data.frame(historical_stats)
-historical_stats$Day <- c(1:366)
-
-current_yr <- format(Sys.Date(), "%Y")
-current_yr_start <- paste0(current_yr, "-01-01")
-current_yr_Daily <- readNWISDaily(siteID,"00060", current_yr_start,"", verbose = F)
-current_yr_Daily$cfs_2023 <- current_yr_Daily$Q*35.314666212661
-current_yr_Daily <- current_yr_Daily %>% select(Day, cfs_2023)
-historical_stats <- merge(historical_stats, current_yr_Daily, by = 'Day', all.x= TRUE)
-
-
-historical_stats %>% ggplot(aes(x=Day)) +
+cfs_historical %>% 
+  ggplot(aes(x=Day)) +
   geom_ribbon(aes(ymin=`25%`, ymax=`75%`), fill = "#6BD7AF", alpha = 0.5) +
   geom_line(aes(y=Mean, color="Mean", lty="Mean"), lwd=1) +
   geom_line(aes(y=cfs_2023, color="Current Year" , lty="Current Year"), lwd=1) +
   geom_line(aes(y=`25%`, color="25th Percentile", lty="25th Percentile"), lwd=1) +
   geom_line(aes(y=`75%`, color="75th Percentile", lty="75th Percentile"), lwd=1) +
   theme_bw() + 
-  labs(x="Day", y="Discharge (cfs)", title=paste0("Historical vs. Current Year (", current_yr, ") Hydrographs \n for ", siteName)) +
+  labs(x="Day", 
+       y="Discharge (cfs)", 
+       title=paste0("Historical vs. Current Year (", 
+                    current_yr, 
+                    ") Hydrographs \n for ", 
+                    siteName)) +
   theme(plot.title = element_text(hjust=0.5, face="bold"),
         axis.text=element_text(size=12),
         axis.title=element_text(size=14,face="bold"),
@@ -789,9 +789,16 @@ historical_stats %>% ggplot(aes(x=Day)) +
         legend.text = element_text(size=10),
         legend.title.align=0.5) +
   scale_color_manual(name = "Legend", 
-                     values = c("Mean" = "black", "Current Year" = "blue", "25th Percentile" = "gray", "75th Percentile" = "gray60")) +
+                     values = c("Mean" = "black", 
+                                "Current Year" = "blue",
+                                "25th Percentile" = "gray", 
+                                "75th Percentile" = "gray60")) +
   scale_linetype_manual(name = "Legend",
-                        values = c("Mean" = 6, "Current Year" = 1, "25th Percentile" = 2, "75th Percentile" = 2))
+                        values = c("Mean" = 6, 
+                                   "Current Year" = 1, 
+                                   "25th Percentile" = 2, 
+                                   "75th Percentile" = 2))
+
 ```
 
 ## 2.3 Flow Duration Curves
