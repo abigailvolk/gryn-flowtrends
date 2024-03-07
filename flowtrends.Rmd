@@ -1,6 +1,7 @@
 ---
 output:
-  html_document: default
+  html_document:
+    keep_md: true
 params:
   ID: ''
 editor_options: 
@@ -29,7 +30,7 @@ interest**. Options are SNR1, SNR2, YRCS, LMR, MDR, SBC, SHR, BHR1, and BHR2.
 ```{r SiteSelection}
 #### MANUALLY Identify which siteID you want to use:
 # site <- params$ID
-site <- "LMR"
+site <- "YRCS"
 ```
 
 NOTE ON AUTOMATION:
@@ -1464,9 +1465,9 @@ there are points outside of the red hashed lines (these may not show up
 if no points are influential), they impact the OLS model.
 
 ```{r PeakFlow-Residuals, echo=FALSE}
-lm_peak <- lm(peakFlow$Day~peakFlow$Year)
-plot(peakFlow$Year, 
-     peakFlow$Day, 
+lm_peak <- lm(peakflow$Day~peakflow$Year)
+plot(peakflow$Year, 
+     peakflow$Day, 
      cex.lab=1.25, 
      xlab = "Year", 
      ylab = "Day of the Year", 
