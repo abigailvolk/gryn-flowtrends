@@ -772,7 +772,33 @@ cfs_historical %>%
   ggplot(aes(x=Day)) +
   geom_ribbon(aes(ymin=`25%`, ymax=`75%`), fill = "#6BD7AF", alpha = 0.5) +
   geom_line(aes(y=Mean, color="Mean", lty="Mean"), lwd=1) +
-  geom_line(aes(y=cfs_2023, color="Current Year" , lty="Current Year"), lwd=1) +
+  geom_line(aes(y=`25%`, color="25th Percentile", lty="25th Percentile"), lwd=1) +
+  geom_line(aes(y=`75%`, color="75th Percentile", lty="75th Percentile"), lwd=1) +
+  theme_bw() + 
+  labs(x="Day", 
+       y="Discharge (cfs)", 
+       title=paste0("Historical Hydrograph \n for ", 
+                    siteName)) +
+  theme(plot.title = element_text(hjust=0.5, face="bold"),
+        axis.text=element_text(size=12),
+        axis.title=element_text(size=14,face="bold"),
+        legend.title = element_text(size=14),
+        legend.text = element_text(size=10),
+        legend.title.align=0.5) +
+  scale_color_manual(name = "Legend", 
+                     values = c("Mean" = "black",
+                                "25th Percentile" = "gray", 
+                                "75th Percentile" = "gray60")) +
+  scale_linetype_manual(name = "Legend",
+                        values = c("Mean" = 6, 
+                                   "25th Percentile" = 2, 
+                                   "75th Percentile" = 2))
+
+cfs_historical %>% 
+  ggplot(aes(x=Day)) +
+  geom_ribbon(aes(ymin=`25%`, ymax=`75%`), fill = "#6BD7AF", alpha = 0.5) +
+  geom_line(aes(y=Mean, color="Mean", lty="Mean"), lwd=1) +
+  geom_line(aes(y=cfs, color="Current Year" , lty="Current Year"), lwd=1) +
   geom_line(aes(y=`25%`, color="25th Percentile", lty="25th Percentile"), lwd=1) +
   geom_line(aes(y=`75%`, color="75th Percentile", lty="75th Percentile"), lwd=1) +
   theme_bw() + 
@@ -799,6 +825,50 @@ cfs_historical %>%
                                    "25th Percentile" = 2, 
                                    "75th Percentile" = 2))
 
+cfs_historical %>% 
+  ggplot(aes(x=Day)) +
+  geom_line(aes(y=`50%`, color="Median"), lwd=1) +
+  geom_line(aes(y=Mean, color="Mean"), lwd=1) +
+  theme_bw() + 
+  theme(plot.title = element_text(hjust=0.5, face="bold"),
+        axis.text=element_text(size=12),
+        axis.title=element_text(size=14,face="bold"),
+        legend.title = element_text(size=14),
+        legend.text = element_text(size=10),
+        legend.title.align=0.5) +
+  labs(x="Days Since January 1st", 
+       y="Discharge (cfs)",
+       title=paste0("Historical Median vs. Mean Hydrographs \n for ", 
+                    siteName)) +
+  scale_color_manual(values = c("Mean" = "orange", "Median" = "black"))
+```
+
+Annual figures:
+
+```{r Annual-Hydrographs, echo=FALSE, message=FALSE, warning=FALSE}
+annual_wateryear <- Daily %>% 
+  select(waterYear, cfs, Date) %>% 
+  mutate(mm = cfs*0.00851016) %>% 
+  group_by(waterYear) %>% 
+  dplyr::summarize(frequency = n(),
+            mean_cfs = mean(cfs),
+            sum_mm = sum(mm)) %>% 
+    filter(frequency > 250)
+
+annual_wateryear %>% 
+  ggplot(aes(x=waterYear, y = mean_cfs)) +
+  geom_line() +
+  geom_smooth(color = "green", se = F) +
+  geom_point() +
+  labs(x="Water Year", 
+       y="Discharge Mean (cfs)") +
+  theme_bw() + 
+  theme(plot.title = element_text(hjust=0.5, face="bold"),
+        axis.text=element_text(size=12),
+        axis.title=element_text(size=14,face="bold"),
+        legend.title = element_text(size=14),
+        legend.text = element_text(size=10),
+        legend.title.align=0.5)
 ```
 
 ## 2.3 Flow Duration Curves
