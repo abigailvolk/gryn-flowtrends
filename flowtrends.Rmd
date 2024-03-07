@@ -712,12 +712,13 @@ Daily <- readNWISDaily(siteID,
                        startDate, 
                        endDate) |>
   dplyr::filter(grepl('A', Qualifier)) |>
-  dplyr::mutate(cfs = Q*35.314666212661)
+  dplyr::mutate(cfs = Q*35.314666212661) |>
+  dplyr::mutate(Year = trunc(DecYear))
 
 INFO <- readNWISInfo(siteID,
                      "00060", 
-                     interactive = FALSE)
-INFO$shortName <- site
+                     interactive = FALSE) |>
+  dplyr::mutate(shortName = site)
 
 eList <- as.egret(INFO, Daily, NA, NA)
 eList <- setPA(eList, paStart = 10, paLong = 12)
@@ -749,9 +750,14 @@ The below hydrograph displays the current year vs. the mean, 25th, and
 75th percentiles from the entire record.
 
 ```{r Historical-Hydrograph, echo=FALSE, message=FALSE, warning=FALSE}
-Daily$Year <- trunc(Daily$DecYear)
-cfs_historical <- Daily %>% select(Day, cfs, Year)
-cfs_historical <- arrange(cfs_historical, Day)
+cfs_historical <- Daily |> 
+  dplyr::mutate(Year = trunc(DecYear)) |>
+  dplyr::select(Day, cfs, Year) |>
+  dplyr::arrange(Day) |>
+  dplyr::group_by(Day) |>
+  dplyr::mutate()
+
+
 cfs_historical <- pivot_wider(cfs_historical, names_from = Day, values_from = cfs)
 quants <- c(0.25,0.50, 0.75)
 Percentiles <- apply(cfs_historical[2:dim(cfs_historical)[2]], 2, quantile, probs = quants, na.rm = TRUE)
