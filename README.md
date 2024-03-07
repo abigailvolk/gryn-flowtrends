@@ -6,7 +6,7 @@ Several things are required by the user before it can be used:
 
 1.  You must specify the Site, Gage number, Start/end dates, and name in the `streamgages` tibble, in Section 1.3.
 2.  You must designate the site using the site abbreviation in Section 1.1. `site <- "LMR"`
-3.  This script uses the packages: `'dataRetrieval', 'EGRET', 'quantreg',                'tidyverse', 'rkt', 'zyp', 'lubridate', 'kableExtra', 'scales'`. It will ask if you want to install these upon running if they are not installed.
+3.  This script uses the packages: `'dataRetrieval', 'EGRET', 'quantreg', 'tidyverse', 'rkt', 'zyp', 'lubridate', 'kableExtra', 'scales'`. It will ask if you want to install these upon running if they are not installed.
 
 **The script was developed using several references, listed here:**
 
