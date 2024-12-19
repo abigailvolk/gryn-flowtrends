@@ -30,7 +30,7 @@ interest**. Options are SNR1, SNR2, YRCS, LMR, MDR, SBC, SHR, BHR1, and BHR2.
 ```{r SiteSelection}
 #### MANUALLY Identify which siteID you want to use:
 # site <- params$ID
-site <- "YRCS"
+site <- "Olema Ck"
 ```
 
 NOTE ON AUTOMATION:
